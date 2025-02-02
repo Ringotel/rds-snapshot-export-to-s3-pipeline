@@ -9,7 +9,7 @@ new RdsSnapshotExportPipelineStack(app, 'RdsSnapshotExportToS3Pipeline', {
   rdsEvents:
     [
       {
-        rdsEventId: RdsEventId.DB_AUTOMATED_SNAPSHOT_CREATED,
+        rdsEventId: RdsEventId.DB_AUTOMATED_AURORA_SNAPSHOT_CREATED,
         rdsSnapshotType: RdsSnapshotType.DB_AUTOMATED_SNAPSHOT
       }
     ],

@@ -78,7 +78,7 @@ def handle_message(message, message_id):
 
         # Identify and process an automated RDS snapshot
         if message["Event ID"].endswith(rds_event_id) and re.match(
-            "^rds:" + DB_NAME + "-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$",
+            "^rds:(" + DB_NAME.replace(',','|') + ")-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$",
             message["Source ID"],
         ) and rds_snapshot_types[i] == RdsSnapshotType.AUTOMATED:
             process_automated_snapshot(message, message_id, db_snapshot_types[i])
@@ -86,7 +86,7 @@ def handle_message(message, message_id):
         # Identify and process an Manual RDS snapshot, which was not created by AWS Backup
         elif message["Event ID"].endswith(rds_event_id) and (
             not re.match(
-                "^rds:" + DB_NAME + "-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$",
+                "^rds:(" + DB_NAME.replace(',','|') + ")-\d{4}-\d{2}-\d{2}-\d{2}-\d{2}$",
                 message["Source ID"],
             ) and 
             not message["Source ID"].startswith("awsbackup:")
@@ -155,7 +155,7 @@ def process_backup_snapshot(message, message_id, db_snapshot_type):
         logger.debug(f"describing snapshot: {snapshot_id}, of source_arn {source_arn}")
         logger.debug(snapshot)
 
-        if (snapshot and "DBInstanceIdentifier" in snapshot and snapshot["DBInstanceIdentifier"] == DB_NAME):
+        if (snapshot and "DBInstanceIdentifier" in snapshot and snapshot["DBInstanceIdentifier"] in DB_NAME.split(',')):
             export_task_identifier = (snapshot["DBInstanceIdentifier"] + '-').replace("--", "-") + snapshot["SnapshotCreateTime"][:10] + '-' + message_id
             start_export_task(export_task_identifier, source_arn)
         else:
