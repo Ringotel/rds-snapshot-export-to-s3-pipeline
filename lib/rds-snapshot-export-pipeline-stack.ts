@@ -244,7 +244,7 @@ export class RdsSnapshotExportPipelineStack extends Stack {
 
     new aws_lambda.Function(this, "LambdaFunction", {
       functionName: props.dbName + "-rds-snapshot-exporter",
-      runtime: aws_lambda.Runtime.PYTHON_3_8,
+      runtime: aws_lambda.Runtime.PYTHON_3_13,
       handler: "main.handler",
       code: aws_lambda.Code.fromAsset(path.join(__dirname, "/../assets/exporter/")),
       environment: {
