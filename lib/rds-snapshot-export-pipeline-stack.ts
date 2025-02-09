@@ -1,7 +1,7 @@
 import { aws_lambda_event_sources, Stack, StackProps, Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as path from "path";
-import { aws_s3, aws_glue, aws_iam, aws_lambda, aws_sns, aws_rds, aws_kms } from 'aws-cdk-lib';
+import { aws_s3, aws_iam, aws_lambda, aws_sns, aws_rds, aws_kms } from 'aws-cdk-lib';
 import { Policy } from 'aws-cdk-lib/aws-iam';
 
 export enum RdsEventId {
@@ -135,28 +135,28 @@ export class RdsSnapshotExportPipelineStack extends Stack {
       ],
     });
 
-    const snapshotExportGlueCrawlerRole = new aws_iam.Role(this, "SnapshotExportsGlueCrawlerRole", {
-      assumedBy: new aws_iam.ServicePrincipal("glue.amazonaws.com"),
-      description: "Role used by RDS to perform snapshot exports to S3",
-      inlinePolicies: {
-        "SnapshotExportsGlueCrawlerPolicy": aws_iam.PolicyDocument.fromJson({
-          "Version": "2012-10-17",
-          "Statement": [
-            {
-              "Effect": "Allow",
-              "Action": [
-                "s3:GetObject",
-                "s3:PutObject"
-              ],
-              "Resource": `${bucket.bucketArn}/*`,
-            }
-          ],
-        }),
-      },
-      managedPolicies: [
-        aws_iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSGlueServiceRole"),
-      ],
-    });
+    // const snapshotExportGlueCrawlerRole = new aws_iam.Role(this, "SnapshotExportsGlueCrawlerRole", {
+    //   assumedBy: new aws_iam.ServicePrincipal("glue.amazonaws.com"),
+    //   description: "Role used by RDS to perform snapshot exports to S3",
+    //   inlinePolicies: {
+    //     "SnapshotExportsGlueCrawlerPolicy": aws_iam.PolicyDocument.fromJson({
+    //       "Version": "2012-10-17",
+    //       "Statement": [
+    //         {
+    //           "Effect": "Allow",
+    //           "Action": [
+    //             "s3:GetObject",
+    //             "s3:PutObject"
+    //           ],
+    //           "Resource": `${bucket.bucketArn}/*`,
+    //         }
+    //       ],
+    //     }),
+    //   },
+    //   managedPolicies: [
+    //     aws_iam.ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSGlueServiceRole"),
+    //   ],
+    // });
 
     const snapshotExportEncryptionKey = new aws_kms.Key(this, "SnapshotExportEncryptionKey", {
       alias: props.dbName + "-snapshot-exports",
@@ -178,8 +178,8 @@ export class RdsSnapshotExportPipelineStack extends Stack {
           {
             "Principal": {
               "AWS": [
-                lambdaExecutionRole.roleArn,
-                snapshotExportGlueCrawlerRole.roleArn
+                lambdaExecutionRole.roleArn
+                // snapshotExportGlueCrawlerRole.roleArn
               ]
             },
             "Action": [
@@ -264,18 +264,18 @@ export class RdsSnapshotExportPipelineStack extends Stack {
       ]
     });
 
-    new aws_glue.CfnCrawler(this, "SnapshotExportCrawler", {
-      name: props.dbName + "-rds-snapshot-crawler",
-      role: snapshotExportGlueCrawlerRole.roleArn,
-      targets: {
-        s3Targets: [
-          {path: bucket.bucketName},
-        ]
-      },
-      databaseName: props.dbName.replace(/[^a-zA-Z0-9_]/g, "_"),
-      schemaChangePolicy: {
-        deleteBehavior: 'DELETE_FROM_DATABASE'
-      }
-    });
+    // new aws_glue.CfnCrawler(this, "SnapshotExportCrawler", {
+    //   name: props.dbName + "-rds-snapshot-crawler",
+    //   role: snapshotExportGlueCrawlerRole.roleArn,
+    //   targets: {
+    //     s3Targets: [
+    //       {path: bucket.bucketName},
+    //     ]
+    //   },
+    //   databaseName: props.dbName.replace(/[^a-zA-Z0-9_]/g, "_"),
+    //   schemaChangePolicy: {
+    //     deleteBehavior: 'DELETE_FROM_DATABASE'
+    //   }
+    // });
   }
 }
